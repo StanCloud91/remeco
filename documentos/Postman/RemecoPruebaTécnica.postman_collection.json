@@ -1,0 +1,253 @@
+{
+	"info": {
+		"_postman_id": "5212a766-3eef-44b2-8475-78752b53d3fe",
+		"name": "RemecoPruebaTécnica",
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json",
+		"_exporter_id": "21427361"
+	},
+	"item": [
+		{
+			"name": "Clientes",
+			"item": [
+				{
+					"name": "Crear Cliente",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"nombre\": \"Juan Osorio\",\r\n  \"genero\": \"MASCULINO\",\r\n  \"edad\": 30,\r\n  \"identificacion\": \"1234567892\",\r\n  \"direccion\": \"13 junio y Equinoccial\",\r\n  \"telefono\": \"098874587\",\r\n  \"contraseña\": \"1245\",\r\n  \"estado\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/clientes"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Clientes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/clientes"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Clientes ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8080/api/clientes/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Cliente",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"nombre\": \"Marianela Montalvo\",\r\n    \"genero\": \"FEMENINO\",\r\n    \"edad\": 30,\r\n    \"identificacion\": \"1234567892\",\r\n    \"direccion\": \"Amazonas y NNUU\",\r\n    \"telefono\": \"097548965\",\r\n    \"clienteId\": \"CLI002\",\r\n    \"contraseña\": \"5678\",\r\n    \"estado\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8080/api/clientes/2"
+					},
+					"response": []
+				},
+				{
+					"name": "Eliminar",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8080/api/clientes/1"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Cuentas",
+			"item": [
+				{
+					"name": "Crear Cuenta",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"numeroCuenta\": \"123456\",\r\n  \"tipoCuenta\": \"AHORROS\", \r\n  \"saldo\": 60,\r\n  \"cliente\": \"Jose Lema\",\r\n  \"estado\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/api/cuentas"
+					},
+					"response": []
+				},
+				{
+					"name": "Listar Cuentas",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/api/cuentas"
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Cuentas",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"numeroCuenta\": \"478758\",\r\n    \"tipoCuenta\": \"AHORROS\",\r\n    \"saldo\": 2000.00,\r\n    \"clienteId\": 1,\r\n    \"estado\": true\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8071/api/cuentas/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Cuentas ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8071/api/cuentas/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Cuentas",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8071/api/cuentas/1"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Movimientos",
+			"item": [
+				{
+					"name": "Crear Movimientos",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n    \"numeroCuenta\": 495878,\r\n    \"tipo\": \"AHORROS\",\r\n    \"saldoInicial\": 150,\r\n    \"estado\": true,\r\n    \"movimiento\": \"Retiro de 540\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/api/movimientos"
+					},
+					"response": []
+				},
+				{
+					"name": "Actualizar Movimientos",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\r\n  \"fecha\": \"2024-07-24T10:00:00\",\r\n  \"tipoMovimiento\": \"DEPOSITO\",\r\n  \"valor\": 500.00,\r\n  \"saldo\": 1500.00,\r\n  \"cuentaId\": 1,\r\n  \"descripcion\": \"Depósito inicial\"\r\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": "http://localhost:8081/api/movimientos/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Movimientos",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/api/movimientos"
+					},
+					"response": []
+				},
+				{
+					"name": "Obtener Movimientos ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": "http://localhost:8081/api/movimientos/1"
+					},
+					"response": []
+				},
+				{
+					"name": "Delete Movimiento",
+					"request": {
+						"method": "DELETE",
+						"header": [],
+						"url": "http://localhost:8081/api/movimientos/1"
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reportes",
+			"item": [
+				{
+					"name": "Reportes",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:8081/api/reportes?fechaInicio=2025-02-08&fechaFin=2026-02-10&identificacion=1234567891",
+							"protocol": "http",
+							"host": [
+								"localhost"
+							],
+							"port": "8081",
+							"path": [
+								"api",
+								"reportes"
+							],
+							"query": [
+								{
+									"key": "fechaInicio",
+									"value": "2025-02-08"
+								},
+								{
+									"key": "fechaFin",
+									"value": "2026-02-10"
+								},
+								{
+									"key": "identificacion",
+									"value": "1234567891"
+								}
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		}
+	]
+}

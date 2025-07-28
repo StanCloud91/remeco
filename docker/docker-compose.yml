@@ -1,4 +1,23 @@
 services:
+  # Base de datos MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: 1234
+      MYSQL_DATABASE: remeco
+      #MYSQL_USER: root
+      #MYSQL_PASSWORD: 1234
+    ports:
+      - "3306:3306"
+    volumes:
+      - ./mysql_data:/var/lib/mysql
+      #- ./mysql/init:/docker-entrypoint-initdb.d
+    networks:
+      - broker-kafka
+    command: --default-authentication-plugin=mysql_native_password
+
   # Zookeeper para Kafka
   zookeeper:
     image: confluentinc/cp-zookeeper:latest
@@ -43,13 +62,94 @@ services:
 
   # Redis para cache
   redis:
-    image: redis:7
+    image: redis:7-alpine
     container_name: redis
+    command: redis-server --appendonly yes
     ports:
-      - "6379:6379"
+      - "6379:6379"    
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
     networks:
       - broker-kafka
-    command: redis-server --appendonly yes
+    
+
+  # Microservicio Cuenta Movimiento
+  cuenta-movimiento:
+    build:
+      context: ../cuenta_movimiento
+      dockerfile: Dockerfile
+    container_name: cuenta-movimiento
+    restart: always
+    ports:
+      - "8081:8081"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/remeco?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_CONSUMER_GROUP_ID: cuenta-movimiento-group
+      SPRING_KAFKA_CONSUMER_AUTO_OFFSET_RESET: earliest
+      SPRING_KAFKA_CONSUMER_KEY_DESERIALIZER: org.apache.kafka.common.serialization.StringDeserializer
+      SPRING_KAFKA_CONSUMER_VALUE_DESERIALIZER: org.springframework.kafka.support.serializer.JsonDeserializer
+      SPRING_KAFKA_CONSUMER_PROPERTIES_SPRING_JSON_TRUSTED_PACKAGES: "*"
+      KAFKA_TOPIC_CLIENTES: clientes-topic
+      SPRING_REDIS_HOST: redis
+      SPRING_REDIS_PORT: 6379
+      SPRING_REDIS_TIMEOUT: 20000ms
+      SERVER_PORT: 8081
+    depends_on:
+      - mysql
+      - kafka
+      - redis
+    networks:
+      - broker-kafka
+    volumes:
+      - ./logs/cuenta-movimiento:/app/logs
+
+  # Microservicio Cliente Persona
+  cliente-persona:
+    build:
+      context: ../cliente_persona
+      dockerfile: Dockerfile
+    container_name: cliente-persona
+    restart: always
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql:3306/remeco?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      SPRING_DATASOURCE_USERNAME: root
+      SPRING_DATASOURCE_PASSWORD: 1234
+      SPRING_DATASOURCE_DRIVER_CLASS_NAME: com.mysql.cj.jdbc.Driver
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: false
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+      SPRING_KAFKA_PRODUCER_KEY_SERIALIZER: org.apache.kafka.common.serialization.StringSerializer
+      SPRING_KAFKA_PRODUCER_VALUE_SERIALIZER: org.springframework.kafka.support.serializer.JsonSerializer
+      SPRING_KAFKA_PRODUCER_ACKS: all
+      SPRING_KAFKA_PRODUCER_RETRIES: 3
+      SPRING_KAFKA_PRODUCER_ENABLE_IDEMPOTENCE: true
+      KAFKA_TOPIC_CLIENTES: clientes-topic
+      SERVER_PORT: 8080
+      SPRING_PROFILES_ACTIVE: default
+    depends_on:
+      - mysql
+      - kafka
+    networks:
+      - broker-kafka
+    volumes:
+      - ./logs/cliente-persona:/app/logs
+
+  
+
+volumes:
+  mysql_data:
+    driver: local
 
 networks:
   broker-kafka:
