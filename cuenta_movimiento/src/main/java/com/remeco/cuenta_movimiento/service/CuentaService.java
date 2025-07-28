@@ -4,10 +4,14 @@ import com.remeco.cuenta_movimiento.dto.CuentaDTO;
 import com.remeco.cuenta_movimiento.entity.Cuenta;
 import com.remeco.cuenta_movimiento.exception.DuplicateResourceException;
 import com.remeco.cuenta_movimiento.exception.ResourceNotFoundException;
+import com.remeco.cuenta_movimiento.kafka.ClienteKafkaConsumer;
 import com.remeco.cuenta_movimiento.repository.CuentaRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -28,6 +32,12 @@ import java.util.stream.Collectors;
 public class CuentaService {
 
     private final CuentaRepository cuentaRepository;
+
+    private final ClienteKafkaConsumer clienteKafkaConsumer;
+
+    private static final Logger logger = LoggerFactory.getLogger(CuentaService.class);
+
+
 
     /**
      * Obtiene todas las cuentas registradas en el sistema.
@@ -91,22 +101,22 @@ public class CuentaService {
      */
     public CuentaDTO createCuenta(CuentaDTO cuentaDTO) {
         // Buscar el id del cliente en Redis usando la identificación
-        /*Integer clienteId = clienteKafkaConsumer.obtenerIdClientePorNombre(cuentaDTO.getCliente());
+        Integer clienteId = clienteKafkaConsumer.obtenerIdClientePorNombre(cuentaDTO.getCliente());
         if (clienteId == null) {
             throw new ResourceNotFoundException("Cliente con identificación " + cuentaDTO.getCliente() + " no encontrado en Redis");
-        }*/
+        }
 
         if (cuentaRepository.existsByNumeroCuenta(cuentaDTO.getNumeroCuenta())) {
             throw new DuplicateResourceException("Cuenta", "número de cuenta", cuentaDTO.getNumeroCuenta());
         }
-
+        logger.info("Este es un mensaje INFO "+clienteId);
         Cuenta cuenta = new Cuenta();
         cuenta.setNumeroCuenta(cuentaDTO.getNumeroCuenta());
         cuenta.setTipoCuenta(cuentaDTO.getTipoCuenta());
         cuenta.setSaldo(cuentaDTO.getSaldo());
-        //cuenta.setClienteId(clienteId);
-        //cuenta.setClienteId(cuentaDTO.getCliente());
+        cuenta.setClienteId(clienteId);
         cuenta.setEstado(cuentaDTO.getEstado());
+
 
         Cuenta savedCuenta = cuentaRepository.save(cuenta);
         return convertToDTO(savedCuenta);
@@ -131,16 +141,16 @@ public class CuentaService {
         }
 
         // Buscar cliente por nombre en Redis
-        /*Integer clienteId = clienteKafkaConsumer.obtenerIdClientePorNombre(cuentaDTO.getCliente());
+        Integer clienteId = clienteKafkaConsumer.obtenerIdClientePorNombre(cuentaDTO.getCliente());
         if (clienteId == null) {
             throw new ResourceNotFoundException("No existe el Cliente");
-        }*/
+        }
 
         // Actualizar campos
         existingCuenta.setNumeroCuenta(cuentaDTO.getNumeroCuenta());
         existingCuenta.setTipoCuenta(cuentaDTO.getTipoCuenta());
         existingCuenta.setSaldo(cuentaDTO.getSaldo());
-        //existingCuenta.setClienteId(clienteId);
+        existingCuenta.setClienteId(clienteId);
         existingCuenta.setEstado(cuentaDTO.getEstado());
 
         Cuenta updatedCuenta = cuentaRepository.save(existingCuenta);
@@ -187,8 +197,8 @@ public class CuentaService {
         CuentaDTO dto = new CuentaDTO();
         BeanUtils.copyProperties(cuenta, dto);
         // Obtener el nombre del cliente por ID y asignarlo al campo cliente
-        // String nombreCliente = clienteKafkaConsumer.obtenerNombreCliente(cuenta.getClienteId());
-        // dto.setCliente(nombreCliente != null ? nombreCliente : "Cliente no encontrado");
+        String nombreCliente = clienteKafkaConsumer.obtenerNombreCliente(cuenta.getClienteId());
+        dto.setCliente(nombreCliente != null ? nombreCliente : "Cliente no encontrado");
         return dto;
     }
 }

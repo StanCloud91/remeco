@@ -2,6 +2,7 @@ package com.remeco.cuenta_movimiento.service;
 
 import com.remeco.cuenta_movimiento.dto.MovimientoDTO;
 import com.remeco.cuenta_movimiento.dto.MovimientoOperacionDTO;
+import com.remeco.cuenta_movimiento.dto.ReporteMovimientoView;
 import com.remeco.cuenta_movimiento.entity.Cuenta;
 import com.remeco.cuenta_movimiento.entity.Movimiento;
 import com.remeco.cuenta_movimiento.exception.InsufficientFundsException;
@@ -14,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -222,5 +224,9 @@ public class MovimientoService {
             return Double.valueOf(matcher.group(1).replace(",", "."));
         }
         return null;
+    }
+
+    public List<ReporteMovimientoView> buscarMovimientosxClientexFecha(LocalDate fechaInicio, LocalDate fechaFin, Integer identificador) {
+        return cuentaRepository.buscarMovimientosxClientexFecha(fechaInicio, fechaFin, identificador);
     }
 }
