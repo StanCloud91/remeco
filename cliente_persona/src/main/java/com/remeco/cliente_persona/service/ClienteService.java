@@ -1,6 +1,7 @@
 package com.remeco.cliente_persona.service;
 
 import com.remeco.cliente_persona.dto.ClienteDTO;
+import com.remeco.cliente_persona.dto.ClienteKafkaDTO;
 import com.remeco.cliente_persona.entity.Cliente;
 import com.remeco.cliente_persona.exception.DuplicateResourceException;
 import com.remeco.cliente_persona.exception.ResourceNotFoundException;
@@ -20,6 +21,8 @@ public class ClienteService {
      * Repositorio para operaciones de persistencia de clientes.
      */
     private final ClienteRepository clienteRepository;
+
+    private final ClienteKafkaProducer clienteKafkaProducer;
 
     /**
      * Obtiene todos los clientes registrados en el sistema.
@@ -98,8 +101,8 @@ public class ClienteService {
         Cliente cliente = convertToEntity(clienteDTO);
         Cliente savedCliente = clienteRepository.save(cliente);
         // Enviar mensaje a Kafka
-        //ClienteKafkaDTO kafkaDTO = new ClienteKafkaDTO(savedCliente.getId().intValue(), savedCliente.getNombre(), savedCliente.getIdentificacion());
-        //clienteKafkaProducer.enviarCliente(kafkaDTO);
+        ClienteKafkaDTO kafkaDTO = new ClienteKafkaDTO(savedCliente.getId().intValue(), savedCliente.getNombre(), savedCliente.getIdentificacion());
+        clienteKafkaProducer.enviarCliente(kafkaDTO);
         return convertToDTO(savedCliente);
     }
 
