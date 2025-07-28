@@ -42,6 +42,19 @@ public class CuentaService {
     }
 
     /**
+     * Obtiene una cuenta específica por su ID.
+     *
+     * @param id ID de la cuenta
+     * @return DTO de la cuenta encontrada
+     * @throws ResourceNotFoundException si la cuenta no existe
+     */
+    public CuentaDTO getCuentaById(Long id) {
+        Cuenta cuenta = cuentaRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta", "id", id));
+        return convertToDTO(cuenta);
+    }
+
+    /**
      * Obtiene una cuenta específica por su número de cuenta.
      *
      * @param numeroCuenta Número de cuenta

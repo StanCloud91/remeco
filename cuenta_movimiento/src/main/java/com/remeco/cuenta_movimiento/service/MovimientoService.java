@@ -1,6 +1,7 @@
 package com.remeco.cuenta_movimiento.service;
 
 import com.remeco.cuenta_movimiento.dto.MovimientoDTO;
+import com.remeco.cuenta_movimiento.dto.MovimientoOperacionDTO;
 import com.remeco.cuenta_movimiento.entity.Cuenta;
 import com.remeco.cuenta_movimiento.entity.Movimiento;
 import com.remeco.cuenta_movimiento.exception.InsufficientFundsException;
@@ -102,6 +103,72 @@ public class MovimientoService {
         return convertToDTO(savedMovimiento);
     }
 
+    public MovimientoDTO convertirOperacionAMovimiento(MovimientoOperacionDTO operacionDTO) {
+        // Buscar cuenta por número de cuenta
+        Cuenta cuenta = cuentaRepository.findByNumeroCuenta(String.valueOf(operacionDTO.getNumeroCuenta()))
+                .orElseThrow(() -> new ResourceNotFoundException("Cuenta", "numeroCuenta", operacionDTO.getNumeroCuenta()));
+
+        // Analizar el campo movimiento para obtener tipo y valor
+        String movimiento = operacionDTO.getMovimiento().toUpperCase();
+        String tipoMovimiento;
+        Double valor;
+        if (movimiento.contains("RETIRO")) {
+            tipoMovimiento = "RETIRO";
+            valor = extraerValor(movimiento);
+        } else if (movimiento.contains("DEPOSITO")) {
+            tipoMovimiento = "DEPOSITO";
+            valor = extraerValor(movimiento);
+        } else {
+            throw new IllegalArgumentException("Tipo de movimiento no soportado: " + operacionDTO.getMovimiento());
+        }
+
+        MovimientoDTO dto = new MovimientoDTO();
+        dto.setTipoMovimiento(tipoMovimiento);
+        dto.setValor(valor != null ? java.math.BigDecimal.valueOf(valor) : null);
+        dto.setSaldo(java.math.BigDecimal.valueOf(operacionDTO.getSaldoInicial()));
+        dto.setCuentaId(cuenta.getId());
+        dto.setDescripcion(operacionDTO.getMovimiento());
+        // La fecha se asigna automáticamente en createMovimiento
+        return dto;
+    }
+
+
+    /**
+     * Actualiza completamente los datos de un movimiento existente.
+     *
+     * @param id ID del movimiento a actualizar
+     * @param movimientoDTO Nuevos datos del movimiento
+     * @return DTO del movimiento actualizado
+     * @throws ResourceNotFoundException si el movimiento no existe
+     */
+    public MovimientoDTO updateMovimiento(Long id, MovimientoDTO movimientoDTO) {
+        Movimiento existingMovimiento = movimientoRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Movimiento", "id", id));
+
+        // Actualizar campos
+        existingMovimiento.setFecha(movimientoDTO.getFecha());
+        existingMovimiento.setTipoMovimiento(movimientoDTO.getTipoMovimiento());
+        existingMovimiento.setValor(movimientoDTO.getValor());
+        existingMovimiento.setSaldo(movimientoDTO.getSaldo());
+        existingMovimiento.setDescripcion(movimientoDTO.getDescripcion());
+
+        Movimiento updatedMovimiento = movimientoRepository.save(existingMovimiento);
+        return convertToDTO(updatedMovimiento);
+    }
+
+    /**
+     * Elimina permanentemente un movimiento del sistema.
+     *
+     * @param id ID del movimiento a eliminar
+     * @throws ResourceNotFoundException si el movimiento no existe
+     */
+    public void deleteMovimiento(Long id) {
+        if (!movimientoRepository.existsById(id)) {
+            throw new ResourceNotFoundException("Movimiento", "id", id);
+        }
+        movimientoRepository.deleteById(id);
+    }
+
     /**
      * Convierte una entidad Movimiento a su correspondiente DTO.
      *
@@ -146,5 +213,14 @@ public class MovimientoService {
             default:
                 return saldoActual;
         }
+    }
+
+    private Double extraerValor(String movimiento) {
+        // Extrae el primer número que encuentre en el string
+        java.util.regex.Matcher matcher = java.util.regex.Pattern.compile("(\\d+([.,]\\d+)?)").matcher(movimiento);
+        if (matcher.find()) {
+            return Double.valueOf(matcher.group(1).replace(",", "."));
+        }
+        return null;
     }
 }
